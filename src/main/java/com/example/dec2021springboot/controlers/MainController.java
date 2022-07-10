@@ -1,61 +1,59 @@
 package com.example.dec2021springboot.controlers;
 
+import com.example.dec2021springboot.dao.UserDAO;
 import com.example.dec2021springboot.models.User;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import java.awt.*;
+import java.util.Optional;
 
 @RestController
+@AllArgsConstructor
 public class MainController {
-    ArrayList<User> users = new ArrayList<>();
+    UserDAO userDAO;
 
-    MainController() {
-        users.add(new User(1, "valera"));
-        users.add(new User(2, "vasya"));
-        users.add(new User(3, "volodya"));
-    }
-
-    @GetMapping("/")
-    public void foobar() {
-        System.out.println("hello");
-    }
-
-    @GetMapping("/hello")
-    public ResponseEntity<String> hello() {
-        ResponseEntity<String> stringResponseEntity = new ResponseEntity<String>("this is body responce", HttpStatus.OK);
-        return stringResponseEntity;
+    @PostMapping("/users")
+    @ResponseStatus(HttpStatus.OK)
+    public void saveUser(@RequestBody User user) {
+        userDAO.save(user);
     }
 
     @GetMapping("/users")
-    public List<User> getUsers() {
-
-        return users;
+    public ResponseEntity<List<User>> getUsers() {
+        List<User> users = userDAO.findAll();
+        return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
-    @PostMapping("/users/save")
-    public ResponseEntity<List<User>> saveUser(@RequestBody User user) {
-        users.add(user);
-        return new ResponseEntity<>(users,HttpStatus.CREATED);
-    }
-
-    @PostMapping("/users")
-    public ResponseEntity<List<User>> saveUser(@RequestParam int id, @RequestParam String name) {
-        users.add(new User(id,name));
-        return new ResponseEntity<>(users,HttpStatus.CREATED);
-    }
     @GetMapping("/users/{id}")
-    public ResponseEntity<User> getUser(@PathVariable int id){
-       User u =  users.stream().filter(user -> user.getId()==id).collect(Collectors.toList()).get(0);
-       return new ResponseEntity<>(u,HttpStatus.OK);
+    public ResponseEntity<User> getUserById(@PathVariable int id) {
+        Optional<User> byId = userDAO.findById(id);
+        User user = byId.get();
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
+
+    @GetMapping("/byname")
+    public ResponseEntity<List<User>> getUsersByName(@RequestParam String name) {
+        //List<User> users = userDAO.findMeAUserWithName(name);
+        List<User> users = userDAO.findByName(name);
+        return new ResponseEntity<>(users, HttpStatus.OK);
+
+    }
+
+    @PatchMapping("/users")
+    public ResponseEntity<User> updateUser(@RequestBody User user){
+        User save = userDAO.save(user);
+        return new ResponseEntity<>(save, HttpStatus.ACCEPTED);
+    }
+
     @DeleteMapping("/users/{id}")
-    public void deleteUser(@PathVariable int id){
-        users.removeIf(next -> next.getId() == id);
+    public void deleteUserById(@PathVariable int id){
+        userDAO.deleteById(id);
     }
 
 }
+
