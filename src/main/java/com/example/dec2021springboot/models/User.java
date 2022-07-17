@@ -15,6 +15,7 @@ import java.util.List;
 @Entity
 @ToString
 public class User {
+    private String email;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -31,4 +32,5 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "id_card")
     )
     private List<Card> cardList;
+    private boolean isActivated = false;
 }

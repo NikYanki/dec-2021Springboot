@@ -7,6 +7,8 @@ import com.example.dec2021springboot.models.User;
 import com.example.dec2021springboot.models.dto.UserPasportReqestDTO;
 import com.example.dec2021springboot.models.dto.UserPassportResponceDTO;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,9 +18,11 @@ import java.util.List;
 public class UserService {
     private UserDAO userDAO;
     private PassportDAO passportDAO;
+    private MailService mailService;
     public void saveuser(User user){
         if (user.getName()!=null)
         userDAO.save(user);
+        mailService.sendEmail(user);
     }
 
     public List<User> findAll() {
@@ -43,5 +47,11 @@ public class UserService {
         userDAO.save(user);
         UserPassportResponceDTO responceDTO = new UserPassportResponceDTO(user);
         return responceDTO;
+    }
+    public ResponseEntity<String> activateAccount(int id){
+        User user = findById(id);
+        user.setActivated(true);
+        userDAO.save(user);
+        return new ResponseEntity<>("account is activatd", HttpStatus.OK);
     }
 }

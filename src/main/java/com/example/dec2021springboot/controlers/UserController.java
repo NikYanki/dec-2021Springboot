@@ -20,6 +20,7 @@ public class UserController {
 
 //    private UserDAO userDAO;
     private UserService userService;
+
 //    private PassportDAO passportDAO;
 //    public UserController(UserDAO userDAO) {
 //        this.userDAO = userDAO;
@@ -48,6 +49,10 @@ public class UserController {
     public ResponseEntity<UserPassportResponceDTO> updateUser(@RequestBody UserPasportReqestDTO dto){
 
         return new ResponseEntity(userService.updatteUserWithPasport(dto),HttpStatus.ACCEPTED);
+    }
+    @GetMapping("/activateAccount/{id}")
+    public ResponseEntity<String> activateAccount(@PathVariable int id){
+        return  userService.activateAccount(id);
     }
 
 }
