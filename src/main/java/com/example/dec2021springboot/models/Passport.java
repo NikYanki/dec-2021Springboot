@@ -16,4 +16,10 @@ public class Passport {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String series;
+    private String photo;// name of file
+
+    public Passport(String series, String photo) {
+        this.series = series;
+        this.photo = photo;
+    }
 }
