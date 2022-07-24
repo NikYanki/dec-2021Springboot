@@ -1,5 +1,7 @@
 package com.example.dec2021springboot.security;
 
+import com.example.dec2021springboot.dao.CastomerDAO;
+import com.example.dec2021springboot.models.Castomer;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,41 +11,58 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import javax.servlet.*;
-import java.io.IOException;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
 @AllArgsConstructor
 public class SecuriyConfigs extends WebSecurityConfigurerAdapter {
+    CastomerDAO castomerDAO;
+    @Bean
+    public PasswordEncoder passwordEncoder(){
+        return new BCryptPasswordEncoder();
+    }
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(new UserDetailsService() {
+            @Override
+            public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+                Castomer castomer = castomerDAO.findByLogin(username);
+                System.out.println(username);
+                User user = new User(castomer.getLogin(),
+                        castomer.getPassword(),
+                        castomer.getRoles().stream()
+                                .map(role ->
+                                new SimpleGrantedAuthority(role.name())).collect(Collectors.toList()));
+               // return castomerDAO.findByLogin(username);
+                return user;
+            }
+        });
+    }
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http = http.csrf().disable();
         http = http.authorizeHttpRequests()
                 .antMatchers(HttpMethod.GET, "/").permitAll()//дозволяємо доступ всім
-                .antMatchers(HttpMethod.POST, "/").authenticated()//долволяємо доступ аутинтифікованим користувачам
-                //.antMatchers(HttpMethod.POST,"/").hasRole("ADMIN").and();//долволяємо доступ користувачам з ролю адмін
-                .antMatchers(HttpMethod.POST, "/users").hasAnyRole("ADMIN", "MANAGER").and();
+                .antMatchers(HttpMethod.POST, "/").hasRole("ADMIN")
+                .antMatchers(HttpMethod.POST, "/users").hasAnyRole("ADMIN", "MANAGER")
+                .antMatchers( "/users").hasAnyRole("ADMIN", "MANAGER", "USER").and();
+
         http = http.httpBasic().and();//базова аутентивікація
         http = http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()//для того щоб сесії не кешувалися
               .cors().configurationSource(corsConfigurationSource()).and();
-                //можна впровадити ще додатково фільтри
-//                .addFilterBefore(new Filter() {
-//                    @Override
-//                    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-//                        System.out.println("filrer works");
-//
-//                        filterChain.doFilter(servletRequest, servletResponse);
-//                    }
-//                }, UsernamePasswordAuthenticationFilter.class);//щось не так
     }
-
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -63,26 +82,4 @@ public class SecuriyConfigs extends WebSecurityConfigurerAdapter {
         //застосовуємо наші налаштування(в данному випадку для усіх урл)
         return source;
     }
-
-//    @Bean//робимо бін обєкт некодеру пасворда
-//    public PasswordEncoder passwordEncoder(){
-//        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-//        return bCryptPasswordEncoder;
-//    }
-
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication().withUser("admin").password("{noop}admin").roles("ADMIN")
-                // в память аплікухи записуємо роль адмін з відповідними юзернейм і пасвордом
-                .and()
-                .withUser("manager").password("{noop}manager").roles("MANAGER");
-    }
-//    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-//        auth.inMemoryAuthentication()
-//                .passwordEncoder(passwordEncoder())
-//                .withUser("admin").password("admin").roles("ADMIN")
-//                // в память аплікухи записуємо роль адмін з відповідними юзернейм і пасвордом
-//                .and()
-//                .withUser("manager").password("manager").roles("MANAGER");
-//    }
 }
