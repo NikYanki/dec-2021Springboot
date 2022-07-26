@@ -56,7 +56,7 @@ public class SecuriyConfigs extends WebSecurityConfigurerAdapter {
         http = http.authorizeHttpRequests()
                 .antMatchers(HttpMethod.GET, "/").permitAll()//дозволяємо доступ всім
                 .antMatchers(HttpMethod.POST, "/").hasRole("ADMIN")
-                .antMatchers(HttpMethod.POST, "/users").hasAnyRole("ADMIN", "MANAGER")
+                .antMatchers(HttpMethod.POST, "/users")./*hasAnyRole("ADMIN", "MANAGER")*/permitAll()
                 .antMatchers( "/users").hasAnyRole("ADMIN", "MANAGER", "USER").and();
 
         http = http.httpBasic().and();//базова аутентивікація

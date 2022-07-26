@@ -24,7 +24,7 @@ public class Castomer /*implements UserDetails*/ {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     //UserName
-    @Column(unique = true)//для запобігання внесення в бд однакових логінів(щоб вони були унікальні)
+   // @Column(unique = true)//для запобігання внесення в бд однакових логінів(щоб вони були унікальні)
     private String login;
     //Password
     private String password;

@@ -32,8 +32,8 @@ public class MainController {
 
     @PostMapping("/users")
     public void saveUser(@RequestBody Castomer castomer) {
-        String encode = passwordEncoder.encode(castomer.getPassword());
-        castomer.setPassword(encode);
+//        String encode = passwordEncoder.encode(castomer.getPassword());
+//        castomer.setPassword(encode);
         castomerDAO.save(castomer);
     }
 }
